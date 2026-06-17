@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحميل تطبيقي</title>
+    <title>صفحة تطبيقي مع الصور</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -13,47 +13,60 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
         }
         .card {
             background-color: #fffbfe;
-            padding: 32px;
+            padding: 24px;
             border-radius: 28px;
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
             text-align: center;
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
+            box-sizing: border-box;
+        }
+        /* تصميم أيقونة التطبيق الدائرية */
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px; /* حواف ناعمة للأيقونة */
+            object-fit: cover;
+            margin-bottom: 12px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
         }
         h1 {
             font-size: 24px;
             color: #6750a4;
-            margin-bottom: 8px;
+            margin: 0 0 4px 0;
         }
-        .version {
-            display: inline-block;
-            background-color: #e8def8;
-            color: #1d192b;
-            padding: 4px 12px;
-            border-radius: 100px;
+        .developer-name {
             font-size: 14px;
-            font-weight: bold;
+            color: #79747e;
+            margin-bottom: 16px;
+        }
+        /* تصميم صورة الإعلان (البانر) */
+        .promo-banner {
+            width: 100%;
+            height: auto;
+            border-radius: 20px; /* حواف متناسقة مع البطاقة */
+            object-fit: cover;
             margin-bottom: 20px;
+            box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
         }
         p {
-            font-size: 16px;
+            font-size: 15px;
             color: #49454f;
-            line-height: 1.5;
-            margin-bottom: 28px;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
         }
-        /* تصميم زر التحميل بأسلوب Material 3 */
         .download-btn {
             display: inline-block;
             background-color: #6750a4;
             color: white;
-            text-decoration: none; /* لإزالة الخط أسفل الرابط */
-            padding: 14px 32px;
+            text-decoration: none;
+            padding: 14px 40px;
             font-size: 16px;
             font-weight: 500;
             border-radius: 100px;
@@ -69,10 +82,14 @@
 <body>
 
     <div class="card">
-        <h1>تحميل التطبيق الرسمي 📱</h1>
-        <span class="version">الإصدار v1.0.0</span>
+        <img src="icon.png" alt="أيقونة التطبيق" class="app-icon">
         
-        <p>اضغط على الزر بالأسفل لتحميل ملف الـ APK مباشرة وثبيته على جهازك الأندرويد.</p>
+        <h1>اسم تطبيقك المميز</h1>
+        <div class="developer-name">بواسطة V2R-art</div>
+        
+        <img src="banner.png" alt="إعلان التطبيق" class="promo-banner">
+        
+        <p>اكتشف الميزات الرائعة داخل التطبيق المطور بأحدث التقنيات. اضغط بالأسفل للتحميل المباشر والآمن لملف الـ APK.</p>
         
         <a href="app-release.apk" download class="download-btn">تحميل الآن (APK)</a>
     </div>
