@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تجربة موقعي الأول</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f0f2f5;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>مرحباً بك في موقعي التجريبي!</h1>
+    <p id="text">جرّب الضغط على الزر بالأسفل لتتحقق من عمل الجافاسكريبت.</p>
+    
+    <button onclick="testFunction()">اضغط هنا</button>
+
+    <script>
+        function testFunction() {
+            document.getElementById("text").innerHTML = "🎉 رائعة! الكود يعمل بنجاح والـ JavaScript نشطة.";
+            document.getElementById("text").style.color = "green";
+        }
+    </script>
+
+</body>
+</html>
