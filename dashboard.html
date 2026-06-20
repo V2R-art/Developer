@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم الشخصية - الموسيقى المحلية</title>
+    <style>
+        body {
+            background-color: #0F0D13;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .dashboard-card {
+            background-color: #1D1B20;
+            border: 2px solid #D0BCFF;
+            border-radius: 28px;
+            padding: 30px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #D0BCFF;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .user-title {
+            color: #938F99;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background-color: #26222D;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .minutes-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #D0BCFF;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            background-color: #ff4081;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #e03270;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-card">
+    <h1 id="welcome_user">جاري التحميل...</h1>
+    <div class="user-title" id="user_email">...</div>
+
+    <div class="stat-box">
+        <div>إجمالي وقت الاستماع على الأندرويد</div>
+        <div class="minutes-number" id="listening_time">0</div>
+        <div>دقيقة من الموسيقى الهادئة</div>
+    </div>
+
+    <button onclick="logout()">تسجيل الخروج</button>
+</div>
+
+<script>
+    const userEmailKey = localStorage.getItem("user_email_key");
+    if (!userEmailKey) {
+        window.location.href = "login.html";
+    }
+
+    // جلب البيانات حياً من السيرفر وعرضها بدقة
+    function fetchLiveData() {
+        fetch(`https://music-24e2d-default-rtdb.firebaseio.com/users/${userEmailKey}.json`)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                document.getElementById("welcome_user").innerText = `مرحباً بك، ${data.username}`;
+                document.getElementById("user_email").innerText = data.email;
+                document.getElementById("listening_time").innerText = data.usage_minutes;
+            }
+        });
+    }
+
+    fetchLiveData();
+    setInterval(fetchLiveData, 15000); // تحديث دوري ذكي وتلقائي كل 15 ثانية لجلب الدقائق الجديدة فوراً
+
+    function logout() {
+        localStorage.removeItem("user_email_key");
+        window.location.href = "login.html";
+    }
+</script>
+
+</body>
+</html>

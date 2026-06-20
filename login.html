@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - الموسيقى المحلية</title>
+    <style>
+        body {
+            background-color: #0F0D13;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background-color: #1D1B20;
+            border: 2px solid #D0BCFF;
+            border-radius: 28px;
+            padding: 30px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+        h2 {
+            color: #D0BCFF;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 1px solid #3A3742;
+            background-color: #26222D;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 24px;
+            border: none;
+            background-color: #D0BCFF;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #bfa8f5;
+        }
+        .status {
+            font-size: 12px;
+            color: #ff4081;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>بوابة مزامنة الأندرويد</h2>
+    <input type="email" id="email" placeholder="البريد الإلكتروني المستخدم في التطبيق">
+    <input type="password" id="password" placeholder="كلمة السر">
+    <button onclick="login()">دخول ومزامنة</button>
+    <div class="status" id="status"></div>
+</div>
+
+<script>
+    function login() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const status = document.getElementById("status");
+
+        if (email === "" || password === "") {
+            status.innerText = "يرجى كتابة البريد وكلمة السر!";
+            return;
+        }
+
+        status.innerText = "جاري التحقق من الخادم السحابي...";
+        status.style.color = "#D0BCFF";
+
+        // ترميز البريد الإلكتروني لمطابقة هيكلية مفاتيح قواعد البيانات
+        const safeEmailKey = email.replace(/\./g, "_").replace(/@/g, "_");
+
+        // استخراج مباشر عبر الويب باستخدام REST API الخاص بـ Firebase
+        fetch(`https://music-24e2d-default-rtdb.firebaseio.com/users/${safeEmailKey}.json`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.password === password) {
+                // حفظ البيانات محلياً في المتصفح والانتقال للوحة البيانات الشخصية
+                localStorage.setItem("user_email_key", safeEmailKey);
+                window.location.href = "dashboard.html";
+            } else {
+                status.innerText = "فشل التحقق! البريد أو كلمة السر غير مطابقة.";
+                status.style.color = "#ff4081";
+            }
+        })
+        .catch(err => {
+            status.innerText = "حدث خطأ في الاتصال بالشبكة!";
+            status.style.color = "#ff4081";
+        });
+    }
+</script>
+
+</body>
+</html>
