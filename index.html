@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة المزامنة - الموسيقى المحلية</title>
+    <style>
+        body {
+            background-color: #0F0D13;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container-card {
+            background-color: #1D1B20;
+            border: 2px solid #D0BCFF;
+            border-radius: 28px;
+            padding: 30px;
+            width: 380px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        h2 {
+            color: #D0BCFF;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 1px solid #3A3742;
+            background-color: #26222D;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 24px;
+            border: none;
+            background-color: #D0BCFF;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #bfa8f5;
+        }
+        .status {
+            font-size: 12px;
+            color: #ff4081;
+            margin-top: 10px;
+        }
+        .stat-box {
+            background-color: #26222D;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .minutes-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #D0BCFF;
+            margin: 10px 0;
+        }
+        .user-title {
+            color: #938F99;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #ff4081;
+            color: white;
+        }
+        .logout-btn:hover {
+            background-color: #e03270;
+        }
+    </style>
+</head>
+<body>
+
+<!-- واجهة الاستقبال والتبديل الذكية -->
+<div class="container-card" id="card_container">
+    <!-- 1. واجهة تسجيل الدخول الافتراضية -->
+    <div id="login_view">
+        <h2>بوابة مزامنة الأندرويد</h2>
+        <input type="email" id="email" placeholder="البريد الإلكتروني المستخدم في التطبيق">
+        <input type="password" id="password" placeholder="كلمة السر">
+        <button onclick="login()">دخول ومزامنة</button>
+        <div class="status" id="status"></div>
+    </div>
+
+    <!-- 2. لوحة الإحصائيات الحية (مخفية افتراضياً وتظهر عند نجاح التحقق) -->
+    <div id="dashboard_view" style="display: none;">
+        <h2 id="welcome_user">مرحباً بك</h2>
+        <div class="user-title" id="user_email">...</div>
+
+        <div class="stat-box">
+            <div>إجمالي وقت الاستماع على الأندرويد</div>
+            <div class="minutes-number" id="listening_time">0</div>
+            <div>دقيقة من الموسيقى الهادئة</div>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+    </div>
+</div>
+
+<script>
+    const status = document.getElementById("status");
+    const loginView = document.getElementById("login_view");
+    const dashboardView = document.getElementById("dashboard_view");
+
+    // التحقق عند فتح الصفحة إذا كان المستخدم مسجلاً بالفعل
+    window.onload = function() {
+        const savedUserKey = localStorage.getItem("user_email_key");
+        if (savedUserKey) {
+            showDashboard(savedUserKey);
+        }
+    };
+
+    function login() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        if (email === "" || password === "") {
+            status.innerText = "يرجى كتابة البريد وكلمة السر!";
+            status.style.color = "#ff4081";
+            return;
+        }
+
+        status.innerText = "جاري التحقق من الخادم السحابي...";
+        status.style.color = "#D0BCFF";
+
+        const safeEmailKey = email.replace(/\./g, "_").replace(/@/g, "_");
+
+        // الاتصال بقاعدة بيانات Firebase مباشرة لقراءة البيانات والتحقق منها
+        fetch(`https://music-24e2d-default-rtdb.firebaseio.com/users/${safeEmailKey}.json`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.password === password) {
+                localStorage.setItem("user_email_key", safeEmailKey);
+                showDashboard(safeEmailKey);
+            } else {
+                status.innerText = "فشل التحقق! البريد أو كلمة السر غير مطابقة.";
+                status.style.color = "#ff4081";
+            }
+        })
+        .catch(err => {
+            status.innerText = "حدث خطأ في الاتصال بالشبكة أو لم يتم تفعيل السيرفر!";
+            status.style.color = "#ff4081";
+        });
+    }
+
+    // إخفاء تسجيل الدخول وإظهار لوحة الدقائق الذكية المحدثة دورياً
+    function showDashboard(userKey) {
+        loginView.style.display = "none";
+        dashboardView.style.display = "block";
+        
+        fetchLiveData(userKey);
+        
+        // جلب الإحصائيات تلقائياً وتحديثها كل 10 ثوانٍ دون الحاجة لتحديث الصفحة
+        window.liveTimer = setInterval(() => {
+            fetchLiveData(userKey);
+        }, 10000);
+    }
+
+    function fetchLiveData(userKey) {
+        fetch(`https://music-24e2d-default-rtdb.firebaseio.com/users/${userKey}.json`)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                document.getElementById("welcome_user").innerText = `مرحباً بك، ${data.username}`;
+                document.getElementById("user_email").innerText = data.email;
+                document.getElementById("listening_time").innerText = data.usage_minutes;
+            }
+        });
+    }
+
+    function logout() {
+        clearInterval(window.liveTimer);
+        localStorage.removeItem("user_email_key");
+        dashboardView.style.display = "none";
+        loginView.style.display = "block";
+        status.innerText = "";
+    }
+</script>
+
+</body>
+</html>
