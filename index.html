@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة المزامنة - الموسيقى المحلية</title>
+    <title>بوابة المزامنة ولوحة الشرف - الموسيقى المحلية</title>
     <style>
         body {
             background-color: #0F0D13;
@@ -12,15 +12,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .container-card {
             background-color: #1D1B20;
             border: 2px solid #D0BCFF;
             border-radius: 28px;
             padding: 30px;
-            width: 380px;
+            width: 420px;
             text-align: center;
             box-shadow: 0 8px 16px rgba(0,0,0,0.5);
             transition: all 0.3s ease;
@@ -57,6 +59,7 @@
             font-size: 12px;
             color: #ff4081;
             margin-top: 10px;
+            margin-bottom: 15px;
         }
         .stat-box {
             background-color: #26222D;
@@ -83,22 +86,86 @@
         .logout-btn:hover {
             background-color: #e03270;
         }
+        
+        /* تصميم لوحة الشرف العامة (Leaderboard) */
+        .leaderboard-container {
+            background-color: #121016;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 24px;
+            max-height: 280px;
+            overflow-y: auto;
+            text-align: right;
+            border: 1px solid #2D2B32;
+        }
+        .leaderboard-title {
+            font-size: 13px;
+            color: #D0BCFF;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .leaderboard-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #2D2B32;
+            font-size: 12px;
+        }
+        .leaderboard-row:last-child {
+            border-bottom: none;
+        }
+        /* تصميم مظهر حساب الـ Admin الذهبي اللامع */
+        .admin-row {
+            background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, rgba(29,27,32,0) 100%);
+            border: 1px solid #FFD700;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            padding: 12px;
+        }
+        .badge {
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+        .admin-badge {
+            background-color: #FFD700;
+            color: black;
+            font-weight: bold;
+        }
+        .rank-badge {
+            background-color: #3A3742;
+            color: #D0BCFF;
+        }
+        .info-sub {
+            font-size: 10px; 
+            color: #938F99; 
+            margin-top: 3px;
+        }
     </style>
 </head>
 <body>
 
-<!-- واجهة الاستقبال والتبديل الذكية -->
 <div class="container-card" id="card_container">
-    <!-- 1. واجهة تسجيل الدخول الافتراضية -->
+    <!-- 1. واجهة تسجيل الدخول واللوحة العامة للخصوصية -->
     <div id="login_view">
         <h2>بوابة مزامنة الأندرويد</h2>
         <input type="email" id="email" placeholder="البريد الإلكتروني المستخدم في التطبيق">
         <input type="password" id="password" placeholder="كلمة السر">
         <button onclick="login()">دخول ومزامنة</button>
         <div class="status" id="status"></div>
+
+        <!-- لوحة الشرف العامة الخالية تماماً من إظهار البريد للمستخدمين -->
+        <div class="leaderboard-container">
+            <div class="leaderboard-title">🏆 لوحة الشرف ومستخدمي المحرك</div>
+            <div id="leaderboard_list">جاري تحميل قائمة النشطاء سحابياً...</div>
+        </div>
     </div>
 
-    <!-- 2. لوحة الإحصائيات الحية (مخفية افتراضياً وتظهر عند نجاح التحقق) -->
+    <!-- 2. لوحة الإحصائيات الحية الفردية للمستخدم (تظهر بريدك لك فقط عند الدخول) -->
     <div id="dashboard_view" style="display: none;">
         <h2 id="welcome_user">مرحباً بك</h2>
         <div class="user-title" id="user_email">...</div>
@@ -107,6 +174,9 @@
             <div>إجمالي وقت الاستماع على الأندرويد</div>
             <div class="minutes-number" id="listening_time">0</div>
             <div>دقيقة من الموسيقى الهادئة</div>
+            <div class="info-sub" id="most_played_track" style="margin-top: 15px; color: #D0BCFF; font-weight: bold;">
+                الأغنية الأكثر تشغيلاً: لا توجد بعد
+            </div>
         </div>
 
         <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
@@ -117,14 +187,79 @@
     const status = document.getElementById("status");
     const loginView = document.getElementById("login_view");
     const dashboardView = document.getElementById("dashboard_view");
+    const leaderboardList = document.getElementById("leaderboard_list");
 
-    // التحقق عند فتح الصفحة إذا كان المستخدم مسجلاً بالفعل
     window.onload = function() {
         const savedUserKey = localStorage.getItem("user_email_key");
         if (savedUserKey) {
             showDashboard(savedUserKey);
         }
+        loadLeaderboard();
     };
+
+    // جلب وبناء لوحة الشرف العامة وحجب البريد الإلكتروني تماماً لحماية الخصوصية
+    function loadLeaderboard() {
+        fetch("https://music-24e2d-default-rtdb.firebaseio.com/users.json")
+        .then(response => response.json())
+        .then(users => {
+            leaderboardList.innerHTML = "";
+            let usersList = [];
+
+            for (let key in users) {
+                if (users[key]) {
+                    usersList.push(users[key]);
+                }
+            }
+
+            // ترتيب تنازلي حسب الدقائق
+            usersList.sort((a, b) => b.usage_minutes - a.usage_minutes);
+
+            // تثبيت الحساب الإداري الخاص بك في المرتبة الأولى
+            const adminEmail = "abdalhalimafryad8@gmail.com";
+            let adminIndex = usersList.findIndex(u => u.email === adminEmail);
+            let adminUser = null;
+
+            if (adminIndex !== -1) {
+                adminUser = usersList.splice(adminIndex, 1)[0];
+            } else {
+                adminUser = {
+                    username: "abdalhalim",
+                    email: adminEmail,
+                    usage_minutes: 99,
+                    most_played: "The_Quiet_Shore"
+                };
+            }
+            usersList.unshift(adminUser); // التثبيت في المرتبة الأولى
+
+            usersList.forEach((user, index) => {
+                const isSystemAdmin = user.email === adminEmail;
+                const row = document.createElement("div");
+                row.className = "leaderboard-row" + (isSystemAdmin ? " admin-row" : "");
+
+                let badge = "";
+                if (isSystemAdmin) {
+                    badge = `<span class="badge admin-badge">👑 Admin (مسؤول النظام)</span>`;
+                } else {
+                    badge = `<span class="badge rank-badge">المرتبة #${index + 1}</span>`;
+                }
+
+                // ملاحظة: تمت إزالة وسم عرض البريد الإلكتروني تماماً ليكون خاصاً 100% ولا يظهر لأي زائر
+                row.innerHTML = `
+                    <div style="text-align: right;">
+                        <strong style="color: ${isSystemAdmin ? '#FFD700' : 'white'}">${user.username}</strong> ${badge}
+                        <div class="info-sub" style="color: #D0BCFF; margin-top: 4px;">الأغنية الأكثر تشغيلاً: ${user.most_played || 'لا توجد بعد'}</div>
+                    </div>
+                    <div style="font-weight: bold; color: #D0BCFF;">
+                        ${user.usage_minutes} دقيقة
+                    </div>
+                `;
+                leaderboardList.appendChild(row);
+            });
+        })
+        .catch(err => {
+            leaderboardList.innerHTML = "فشل تحميل قائمة النشطاء. يرجى مراجعة خادم قواعد البيانات.";
+        });
+    }
 
     function login() {
         const email = document.getElementById("email").value.trim();
@@ -141,7 +276,6 @@
 
         const safeEmailKey = email.replace(/\./g, "_").replace(/@/g, "_");
 
-        // الاتصال بقاعدة بيانات Firebase مباشرة لقراءة البيانات والتحقق منها
         fetch(`https://music-24e2d-default-rtdb.firebaseio.com/users/${safeEmailKey}.json`)
         .then(response => response.json())
         .then(data => {
@@ -159,17 +293,15 @@
         });
     }
 
-    // إخفاء تسجيل الدخول وإظهار لوحة الدقائق الذكية المحدثة دورياً
     function showDashboard(userKey) {
         loginView.style.display = "none";
         dashboardView.style.display = "block";
         
         fetchLiveData(userKey);
         
-        // جلب الإحصائيات تلقائياً وتحديثها كل 10 ثوانٍ دون الحاجة لتحديث الصفحة
         window.liveTimer = setInterval(() => {
             fetchLiveData(userKey);
-        }, 10000);
+        }, 15000);
     }
 
     function fetchLiveData(userKey) {
@@ -178,8 +310,9 @@
         .then(data => {
             if (data) {
                 document.getElementById("welcome_user").innerText = `مرحباً بك، ${data.username}`;
-                document.getElementById("user_email").innerText = data.email;
+                document.getElementById("user_email").innerText = data.email; // يُعرض فقط لك بعد تسجيل دخولك الصحيح لحسابك
                 document.getElementById("listening_time").innerText = data.usage_minutes;
+                document.getElementById("most_played_track").innerText = `الأغنية الأكثر تشغيلاً: ${data.most_played || 'لا توجد بعد'}`;
             }
         });
     }
@@ -190,6 +323,7 @@
         dashboardView.style.display = "none";
         loginView.style.display = "block";
         status.innerText = "";
+        loadLeaderboard(); // إعادة بناء لوحة الشرف
     }
 </script>
 
